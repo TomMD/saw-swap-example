@@ -1,0 +1,18 @@
+v1 <- load_crucible_llvm_module "foo.bc";
+let v2 =
+    do {
+        // Make the array size match the "NR_A" CPP in the C file
+        v3   <- crucible_fresh_var "args[0]" (llvm_array 5 (llvm_int 64));
+        arg0 <- crucible_alloc               (llvm_array 5 (llvm_int 64));
+        v4 <- crucible_fresh_var "args[1]"   (llvm_array 5 (llvm_int 64));
+        arg1 <- crucible_alloc               (llvm_array 5 (llvm_int 64));
+        crucible_points_to arg0 (crucible_term v3);
+
+        crucible_points_to arg1 (crucible_term v4);
+
+        swp <- crucible_fresh_var "args[2]" (llvm_int 64);
+
+        crucible_execute_func [arg0, arg1, crucible_term swp];
+        crucible_return (crucible_term {{ 1 : [64] }});
+    };
+v6 <- time (crucible_llvm_verify "test" [] v2 assume_unsat);

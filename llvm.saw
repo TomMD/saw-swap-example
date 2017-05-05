@@ -1,0 +1,29 @@
+v1 <- llvm_load_module "foo.bc";
+let v2 =
+    do {
+        llvm_ptr "args[0]"        (llvm_array 5 (llvm_int 64));
+        v3 <- llvm_var "*args[0]" (llvm_array 5 (llvm_int 64));
+        llvm_ptr "args[1]"        (llvm_array 5 (llvm_int 64));
+        v4 <- llvm_var "*args[1]" (llvm_array 5 (llvm_int 64));
+
+        llvm_simplify_addrs true;
+        v5 <- llvm_var "args[2]" (llvm_int 64);
+        llvm_verify_tactic z3;
+        llvm_return {{1 : [64]}};
+    };
+print "With 'llvm_simplify_addrs true':";
+v6 <- time (llvm_verify v1 "test" [] v2);
+
+let vwo =
+    do {
+        llvm_ptr "args[0]"        (llvm_array 5 (llvm_int 64));
+        v3 <- llvm_var "*args[0]" (llvm_array 5 (llvm_int 64));
+        llvm_ptr "args[1]"        (llvm_array 5 (llvm_int 64));
+        v4 <- llvm_var "*args[1]" (llvm_array 5 (llvm_int 64));
+
+        v5 <- llvm_var "args[2]" (llvm_int 64);
+        llvm_verify_tactic z3;
+        llvm_return {{1 : [64]}};
+    };
+print "Without: ";
+v6 <- time (llvm_verify v1 "test" [] vwo);
